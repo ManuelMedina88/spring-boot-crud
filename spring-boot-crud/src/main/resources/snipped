@@ -615,4 +615,148 @@ logging.level.org.hibernate.SQL=debug
 
 *************************************************************************************************************
 
-// l
+// Pagenable
+
+// the Interface Dao have to extends from PagingAndSortingRepository instead of CrudRepository to get the paginator properties
+// Then in the service interface add the abstract method private Page<computer> findAll(Pageable page) from org.springframework.data.domain;
+// in the service implementation you implement in the following way:
+
+public Page<Computer> findAll(Pageable pageable){
+
+	return computerServiceImpl.findAll(pageable);
+	
+}
+
+// after this you have to retrieve the page which you are working with, you must use RequestParam and your list method is
+// gonna be look like this one.
+
+@GetMapping("/list")
+public String list(@RequestParam(name="page", defaultValue="0") int page, Model model){
+	
+	Pageable pageRequest = PageRequest.of(page, 4);
+	
+	Page<Computer> computers = computerService.findAll(pageRequest);
+	
+	model.addAttribute("title", "List of Available Computer");
+	model.addAttribute("computers", computers);
+	
+	return "list";
+	
+}
+
+
+//step 2 is create a new package in the base package project and call it util.paginator for example.
+// then create a class that could be called PageRender and make it generic it will look like this one.
+
+
+public class PageRender<T>{
+
+	private String url;
+	
+	private Page<T> page;
+	
+	private int totalPages;
+	
+	private int elementNumberPerPage;
+	
+	private int currentPage;
+	
+	private List<PageItem> pages;
+	
+	public PageRender(String url, Page<T> page){
+	
+		this.url = url;
+		this.page = page;
+		this.pages = new ArrayList<PageItem>();
+		
+		this.elementNumberPerPage = page.getSize();
+		this.totalPages = page.getTotalPages();
+		this.currentPage = page.getNumber() + 1;
+		
+		int from, upto;
+		if(totalPages <= elementNumberPerPage){
+			from = 1;
+			upto = totalPages;
+		}else{
+		
+			if(currentPage <= elementNumberPerPage/2){
+				from = 1;
+				upto = elementNumberPerPage;
+			
+			}else if(currentPage >= totalPages - elementNumberPerPage/2){
+			
+				from = totalPages - elementNumberPerPage + 1;
+				upto = elementNumberPerPage;
+			}else {
+				from = currentPage - numberElementPerPage/2;
+				upto = elementNumberPerPage;
+			} 
+		}
+		
+		for(int i = 0; i < upto; i++){
+			
+			pages.add(new PageItem(from + i, currentPage == from + i ));
+		}
+	}
+	
+	public String getUrl(){
+		return url;
+	}
+	
+	public int getTotalPages(){
+		return totalPage;
+	}
+	
+	public int getCurrentPage(){
+		return currentPage;
+	}
+	
+	public List<PageItem> getPages(){
+		return pages;
+	}
+	
+	public boolean isFirst(){
+		return page.isFirst();
+	}
+	
+	public boolean isLast(){
+		return page.isLast();
+	}
+	
+	public boolean isHasNext(){
+		return page.hasNext();
+	}
+	
+	public boolean isHasPrevious(){
+		return page.hasPrevious();
+	}
+}
+
+
+step 3 
+
+// create a class called for example PageItem like this one:
+
+public class PageItem{
+
+	private int number;
+	
+	private boolean current;
+	
+	public PageItem(int number, boolean current){
+	
+		this.number = number;
+		this.current = current;
+	}
+	
+	public int getNumber(){
+	
+		return number;
+	
+	}
+	
+	public boolean isCurrent(){
+	
+		return current;
+	}
+}
