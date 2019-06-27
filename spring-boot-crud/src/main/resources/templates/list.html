@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+<head th:replace="/layout/layout :: head"></head>
+<body>
+	<header th:replace="/layout/layout :: header"></header>
+
+	<div class="container">
+		<h1 th:text="${title}"></h1>
+
+		<div class="card">
+			<div class="card-body px-6">
+				<a th:href="@{/computer/form}" class="btn btn-success my-4">Register
+					Computer</a>
+				<table class="table table-bordered table-striped">
+					<thead>
+						<tr class="bg-dark text-light">
+							<th>Id</th>
+							<th>Brand</th>
+							<th>Processor</th>
+							<th>Ram</th>
+							<th>Hard Drive</th>
+							<th>Graphics Card</th>
+							<th>monitor</th>
+							<th>Operating System</th>
+							<th>Manufacturing Date</th>
+							<th>Edit</th>
+							<th>Delete</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="computer : ${computers}">
+							<td th:text="${computer.id}"></td>
+							<td th:text="${computer.brand}"></td>
+							<td th:text="${computer.processor}"></td>
+							<td th:text="${computer.ram}"></td>
+							<td th:text="${computer.hardDrive}"></td>
+							<td th:text="${computer.graphicsCard}"></td>
+							<td th:text="${computer.monitor}"></td>
+							<td th:text="${computer.operatingSystem}"></td>
+							<td th:text="${computer.manufacturingDate}"></td>
+							<td><a th:href="@{/computer/form/} + ${computer.id}" class="btn btn-primary">Edit</a></td>
+							<td><a th:href="@{/computer/delete/} + ${computer.id}" class="btn btn-danger">Delete</a></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<footer th:replace="/layout/layout :: footer"></footer>
+</body>
+</html>

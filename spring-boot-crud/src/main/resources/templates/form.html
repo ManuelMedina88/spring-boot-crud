@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+<head th:replace="/layout/layout :: head"></head>
+<body>
+<header th:replace="/layout/layout :: header"></header>
+<div class="container bg-light my-4">
+	<h1 th:text="${title}" class="bg-dark text-light my-4"></h1>
+	
+	<form th:action="@{/computer/form}" th:object="${computer}" method="post">
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Brand</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{brand}" class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Processor</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{processor}" class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('processor')}" th:errors="*{processor}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Ram</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{ram}" class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('ram')}" th:errors="*{ram}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Hard Drive</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{hardDrive}"  class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('hardDrive')}" th:errors="*{hardDrive}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Graphics Card</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{graphicsCard}"  class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('graphicsCard')}" th:errors="*{graphicsCard}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Monitor</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{monitor}" class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('monitor')}" th:errors="*{monitor}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Operating System</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{operatingSystem}" class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('operatingSystem')}" th:errors="*{operatingSystem}"></small>
+			</div>
+		</div>
+		
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Manufacturing Date</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{manufacturingDate}" class="form-control"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('manufacturingDate')}" th:errors="*{manufacturingDate}"></small>
+			</div>
+		</div>
+		<div class="form-group row py-4 mx-2">
+			<input type="submit" value="Send" class="btn btn-success"/>&nbsp &nbsp
+			<input type="reset" value="Reset" class="btn btn-danger"/>
+		</div>
+	</form>
+</div>
+<footer th:replace="/layout/layout :: footer"></footer>
+</body>
+</html>
