@@ -1,0 +1,580 @@
+Para cambiar el puerto en properties.
+
+server.port:8090
+
+@Controller
+
+@RequestMapping(value="/index", method=RequestMethod.GET)
+
+@GetMapping(value="/index")
+			  |
+			  |
+			  | value and path make the same function.
+			  |
+			  |
+@GetMapping(path={"/index", "/", "", "home"})
+
+xmlns="http://www.thymeleaf.org"
+
+charset="UTF-8"
+
+
+Model model
+		   \
+			\__________> addAttribute("key", "value");
+			/
+		   /
+ModelMap model
+
+Map<String, Object> model---------> put("String", Object);
+
+
+// ModelAndView demonstration
+@GetMapping({"/index", "/", "", "/home"})
+public ModelAndView index(ModelAndView model){
+	model.addObject("Key", Object);
+	model.setViewName("webpage");
+}
+
+
+// showing text with thymeleaf
+
+<h1 th:text="${title}"></h1>
+th:text="${factura.cliente.nombre + ' ' + factura.cliente.apellido}"
+
+//th:unescape
+th:utext="${factura.cliente.nombre}"
+
+// if with thymeleaf
+<span th:if="${user.email}" th:text="${user.email}"></span>
+// else
+<span th:if="${user.email == null}" th:text="'text to show'"></span>
+
+
+// Foreach in thymeleaf
+
+<div>
+	<table>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Last Name</th>
+				<th>Email</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="user : ${users}">
+				<td th:text="${user.name}"></td>
+				<td th:text="${user.lastName}"></td>
+				<td th:text="${user.email}"></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+
+// @ModelAttribute is shared between all the methods in the controller.
+
+@ModelAttribute("users")
+public List<User> users(){
+
+	List<User> users = Arrays.asList(new User("name", "lastName", "email"),
+		new User("name", "lastName", "email"), new User("name", "lastName", "email"));
+		
+	return users;
+}
+
+
+// @RequestParam
+
+	// When you put in the url the next line of code you 
+	could extract the attribute with @RequestParam
+	
+	localhost:8080/params/string?text=Hi how's everything	
+
+@GetMapping("/params/string")
+public String params(@RequestParam(name="text", required=false, 
+	defaultValue="value") String text, Model model){
+	
+	String receivedText = text;
+	
+	model.addAttribute("text", receivedText);
+	
+	return "webpage";
+}
+
+
+
+<a th:href="@{/parms/string(text = 'Hi Andres')}">/params/string?text=Hi Andres</a>
+<a th:href="@{/parms/string(text = 'Hi Andres', number=10)}">/params/string?text=Hi Andres</a>
+<td ><a th:href="@{/car/update/(id=${car.id})}" class="btn btn-primary">Edit</a></td>
+<a th:href="@{/form/} + ${cliente.id}" th:text="Editar" class="btn btn-primary"></a>
+// Variouos Parameters with HttpServletRequest
+
+@GetMapping("/mix-params-request")
+public String param(HttpServletRequest request, Model model){
+
+	String greeting = request.getParameter("parameterName1");
+	Integer number = null;
+	
+	try{
+		number = Integer.parseInt(request.getParameter("parameterName2"));
+	}
+}
+
+
+// another way to pass a parameter to the model
+model.addAttribute("result", "The greeting receive is: '" + param1 + "' and the number is '" + param2 + "'");
+
+
+//@PathVariable
+
+**** ONE variable in the path
+
+localhost:8080/string/este es el resultado  <----- this is called a variable URL template
+
+
+@GetMapping("/string/{text}")
+public String showPathVariable(@PathVariable(name="text") String text, Model model){
+
+	model.addAttribute("result", "The result is " + text);
+	
+	return "path-variable";
+	 
+}
+
+
+***** More than one variable int the path
+
+localhost:8080/string/este es el resultado
+
+@GetMapping("/string/{text}/{numero}")
+public String showPathVariable(@PathVariable(name="text") String text, 
+	@PathVariable(name="number") Integer number, Model model){
+
+	model.addAttribute("result", "The result is " + text + " And the number is " + number);
+	
+	return "path-variable";
+	 
+}
+
+
+//link to css
+
+<link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}"></link> 
+
+// to link to a image
+
+<img th:src="@{/images/spring.png}"></img>
+
+
+**************************************************************************
+
+//to use @value you must have to create a new file.properties and then
+// write in the file something like this : text.indexcontroller.index.title: Hi from Spring Framework
+
+
+@Value("${text.indexcontroller.index.title}")
+private String text; 
+
+
+@Configuration
+@PropertySources({
+	propertySource("classpath:file.properties")
+})
+public class TextPropertiesConfig{
+
+}
+
+
+**********************************************************************
+// redirect and forward
+// 
+// redirect erases all the params and reload the page to specified url
+//
+// forward makes the work under the hood and doesn't erase the param
+
+//examples with forward
+@GetMapping("/")
+public String home{
+	return "forward:/app/index";
+}
+
+
+//examples with redirect
+@GetMapping("/")
+public String home{
+	return "redirect:/app/index";
+} 
+
+**********************************************************************
+
+//to deploy a program from a terminal you have to generate the mvnw (Maven wrapper) jar
+// to use this you have to configure the JAVA_HOME enviroment variable. 
+//en windows
+
+C:\Users\manuel\Spring5\workspace\my-knowledge-spring-boot-web> .\mvnw.cmd package
+
+// y despues
+
+C:\Users\manuel\Spring5\workspace\my-knowledge-spring-boot-web> java -jar .\target\my-knowledge-spring-boot-web-0.0.1-SNAPSHOT.jar
+
+ 
+************************************************************************
+
+@Component
+@Controller
+@Service
+@Repository
+@Autowired
+
+service locator
+container
+
+
+**************************************************
+// Dependency Inyection via constructor and setters
+ and member variable
+
+@Controller
+public class IndexController{
+
+	@Autowired
+	private IService service;
+	
+	
+	
+	//we can omit the @Autowired annotation in the 
+	//constructor when it specify the variable to 
+	//inject as parameter type.
+	@Autowired
+	public indexController(IService service){
+	
+		this.service = service;
+		
+	}
+	
+	@GetMapping({"/", "", "/index"})
+	public String index(Model model){
+		
+		model.addAttribute("object", service.operation());
+		return "index";
+	}
+	
+	@Autowired 
+	public void setService(IService service){
+	
+		this.service = service;
+		
+	}
+}
+
+***********************************************************
+// @Primary annotation, it assigned at class level
+
+@Component("myComplexService")
+@Primary
+public class MyComplexService implements IService{
+
+	@Override
+	public String operation(){
+		
+		return "executing some important complex process ";
+	}
+}
+
+**********************************************************************
+// @Qualifier("ComponentNameImpl")
+
+@Controller
+public class IndexController {
+	
+	@Autowired
+	@Qualifier("myComplexService")
+	private IService service;
+	
+	@GetMapping({"", "/", "index"})
+	public String index(Model model){
+		
+		model.addAttribute("object", service.operation());
+		return "index";
+	}
+}
+
+
+
+*************************************************************************************
+//@Bean to register a bean without a specifying an annotation in it,
+//you have to create a new class in the base package for example AppConfig.
+//and register them as follows. this way is utilized to register third party class like external API's
+
+@Configuration
+public class AppConfig{
+	
+	@Bean("myServiceSimple")
+	@Primary
+	public IService registerMyService(){
+		
+		return new ServiceImplSimple;
+	}
+	
+	@Bean("myServiceComplex")
+	public IService registerMyService(){
+		
+		return new ServiceImplComplex;
+	}
+}
+ 
+*********************************************************************************************
+//@PostConstruct and @PreDestroy
+// Each class only are to have one of each annotation 
+// @PostContructo is used to initialize an object after it's created.
+// @PreDestroy is used when there are connections to close in the 
+// object, you can close them there.
+
+
+
+*********************************************************************************************
+//scope.
+// all the components are singleton by default when you change the by
+// @RequestScope or another one like @SessionScope or @ApplicationScope
+// that change. 
+
+// @RequestScope: is only valid till the page is update if the page is update everything in that component is lost
+
+// @SessionScope: is gonna be created since Spring map it in the container adn
+// is gonna be destroy when we close the browser or a time out happen or when the session is invalid.
+// when you use a @SessionScope you have to implement Serializable in the component.
+// when you use a @SessionScope @PreDestroy don't work because the Http session is handled by 
+// the servlet.
+
+// @ApplicationScope is pretty like Singleton the only difference is 
+//  
+**************************************************************************************
+// form with thymeleaf
+
+<form th:action="@{/car/create}" th:object="${car}" method="post" autocomplete="off">
+			<table>
+				<tbody>
+					<tr>
+						<th>Brand</th>
+						<td><input type="text" th:field="*{brand}"></td>
+					</tr>
+					<tr>
+						<th>Year</th>
+						<td><input type="text" th:field="*{built}"></td>
+					</tr>
+					<tr>
+						<th>Ran Kilometer</th>
+						<td><input type="text" th:field="*{km}"></td>
+					</tr>
+					</tr>
+					
+					<input type="hidden" th:field="*{id}">
+					
+				</tbody>
+			</table>
+			</br>
+			<input type="submit" value="submit" class="btn btn-success">
+			<input type="reset" value="reset" class="btn btn-danger">		
+		</form>
+
+*****************************************************************************************
+// JPA is the standar interface that provides the main mechanisms to manipulate data while 
+// Hibernate is the implementation of this Interface.
+
+@Entity
+
+@Table(name="customers")
+
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+
+@Column(name="columnName")
+
+@Temporal(TemporalType.DATE)
+
+@DateTimeFormat(pattern = "dd/MM/yyyy")
+
+@Repository
+
+@PersistenceContext
+private EntityManager em;
+
+@SuppressWarnings("unchecked")
+@Transactional(readOnly = true)
+
+@Autowired
+
+@Qualifier("beanName")
+
+*************************************************************************************************
+// Bootstrap
+
+class="container"
+
+class="text-secondary border border-success	border-top-0 border-left-0 border-right-0"
+
+class="table table-striped"
+
+
+***********************************************************************************************
+// H2
+
+spring.h2.console.enabled: true
+
+
+//to enter on the console you have to go to this url http://localhost:8080/h2-console
+
+//default data base name(JDBC URL): jdbc:h2:mem:testdb 
+//without password.
+
+//Configuration in application.properties
+
+spring.datasource.url=jdbc:h2:mem:clientedb
+spring.datasource.username:manuel
+spring.datasource.password=programa
+spring.datasource.driver-class-name=org.h2.Driver
+spring.h2.console.enabled: true
+
+*******************************************************************************************
+// @PrePersist when a method is marked with this annotation it's executed before hibernate
+// persist the entity
+
+@PrePersist
+public void prePersist() {
+		
+	createdAt = new Date();
+
+}
+
+*****************************************************************************************
+// Form mejorado con boostrap
+<div th:object="${cliente}" th:remove="tag">
+	<ul th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+		<li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+	</ul>
+	</div>
+	<form th:action="@{/form}" th:object="${cliente}" method="post"
+		autocomplete="off">
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Nombre</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{nombre}" class="form-control"  th:errorclass="'form-control alert-danger'"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></small>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label">Apellido</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{apellido}" class="form-control" th:errorclass="'form-control alert-danger'"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('apellido')}" th:errors="*{apellido}"></small>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label"> Email</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{email}" class="form-control"  th:errorclass="'form-control alert-danger'"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+			</div>
+		</div>
+		<div class="form-group row">
+			<label class="col-sm-2 col-form-label"> Fecha</label>
+			<div class="col-sm-6">
+				<input type="text" th:field="*{createdAt}" class="form-control"  th:errorclass="'form-control alert-danger'"/>
+				<small class="form-text text-danger" th:if="${#fields.hasErrors('createdAt')}" th:errors="*{createdAt}"></small>
+			</div>
+		</div>
+		<input type="hidden" th:field="*{id}" />
+		<input type="submit" class="btn btn-primary" value="Crear" />
+		<input type="reset" value="Borrar" class="btn btn-danger" />
+	</form>
+		
+**********************************************************************************************
+// Validation, in each entity's field you could validated if each one is according
+// to the specifications requested by the programmers through the following annotations
+
+@NotEmpty
+@NotNull
+@Email
+@Size(min = 2, max = 30)
+
+// to allow that all this annotation work properly you have to add the @Valid annotation in the 
+// controller inside the method's parameter list that is going to handle the data like this:
+
+
+
+					 Just Here
+						 |
+						 |
+@PostMapping("/form")	 |
+public String guardar(@Valid @ModelAttribute("cliente") Cliente cliente,
+	BindingResult result, Model model) {
+		
+	if(result.hasErrors()) {
+			
+		model.addAttribute("titulo", "Formulario de cliente");
+		return "/form";
+	}
+		
+	clienteDao.save(cliente);
+	return "redirect:listar";
+	
+}
+
+
+// to show the error massage in the form put this below the input
+ th:errorclass="'form-control alert-danger'" // inside of the input
+<small class="form-text text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></small> 
+
+******************************************************************************************
+// Customizing warning error messages
+
+// first you must create a file property called "messages.properties" and then writing in the customize messages like this:
+// annotationName.classNameInlowcases.fieldNameInLowCases: the message. it will look as follow:
+// NotEmpty.client.name: the client's name is required. 
+// if the type of the object doesn't match with data given by the user you can use the following
+	typeMismatch.classname.fieldname: message
+	
+// if you are working with tildes in the web page you have to change the charset to "UTF-8"
+// going to the file's properties and changing the text file encoding to UTF-8
+
+*******************************************************************************************
+// @SessionAttribute("cliente") it save the attribute specified in the parenthesis, this is 
+// put up class session below @Controller annotation, this is save until you used 
+// @SessionStatus annotation to eliminate de the session attribute. this could be used 
+// perfectly to replace the hidden id and it's a best practice.
+
+@SessionAttributes("attributeName")
+SessionStatus status
+status.setCompleted();
+
+
+	@PostMapping("/form")
+	public String guardar(@Valid @ModelAttribute("cliente") Cliente cliente,
+			BindingResult result, Model model, SessionStatus status) {
+		
+		if(result.hasErrors()) {
+			
+			model.addAttribute("titulo", "Formulario de cliente");
+			return "/form";
+		}
+		
+		
+		clienteDao.save(cliente);
+		
+		status.setComplete();
+		
+		return "redirect:listar";
+	} 
+
+************************************************************************************
+// application properties configuration for mysqlserver:
+
+spring.datasource.url=jdbc:mysql://localhost/db_springboot?serverTimezone=America/Santo_Domingo
+spring.datasource.username=root
+spring.datasource.password=Programacion_10
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.hibernate.ddl-auto=create-drop // sirve para crear, mappear y borrar las tablas.
+logging.level.org.hibernate.SQL=debug
