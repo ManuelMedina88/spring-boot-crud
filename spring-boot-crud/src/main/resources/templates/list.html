@@ -4,14 +4,17 @@
 <body>
 	<header th:replace="/layout/layout :: header"></header>
 
-	<div class="container">
-		<h1 th:text="${title}"></h1>
+	<div class="container py-4">
 
-		<div class="card">
+		<div class="card bg-light">
+			<div class="card-header" th:text="${title}"></div>
 			<div class="card-body px-6">
-				<a th:href="@{/computer/form}" class="btn btn-success my-4">Register
-					Computer</a>
-				<table class="table table-bordered table-striped">
+
+				<h4 class="card-title">
+					<a th:href="@{/computer/form}" class="btn btn-success my-4">Register
+						Computer</a>
+				</h4>
+				<table class="table table-bordered bg-white table-striped ">
 					<thead>
 						<tr class="bg-dark text-light">
 							<th>Id</th>
@@ -38,14 +41,16 @@
 							<td th:text="${computer.monitor}"></td>
 							<td th:text="${computer.operatingSystem}"></td>
 							<td th:text="${computer.manufacturingDate}"></td>
-							<td><a th:href="@{/computer/form/} + ${computer.id}" class="btn btn-primary">Edit</a></td>
-							<td><a th:href="@{/computer/delete/} + ${computer.id}" class="btn btn-danger">Delete</a></td>
+							<td><a th:href="@{/computer/form/} + ${computer.id}"
+								class="btn btn-primary">Edit</a></td>
+							<td><a th:href="@{/computer/delete/} + ${computer.id}"
+								class="btn btn-danger">Delete</a></td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 		</div>
 	</div>
-	<footer th:replace="/layout/layout :: footer"></footer>
+	<!--  <footer th:replace="/layout/layout :: footer"></footer>  -->
 </body>
 </html>

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bolsadeideas.springboot.app.models.entity.Computer;
 import com.bolsadeideas.springboot.app.models.service.IComputerService;
@@ -45,10 +46,17 @@ public class MainController {
 	}
 	
 	@GetMapping("/form/{id}")
-	public String editCumputer(@PathVariable(name="id") Long id,  Model model) {
+	public String editCumputer(@PathVariable(name="id") Long id, RedirectAttributes flash, Model model) {
+		Computer computer =  computerService.findById(id);
+		
+		if(computer == null) {
+			
+			flash.addFlashAttribute("warning", "The computer requested doesn't exit!");
+			return "redirect:/computer/list";
+		}
 		
 		model.addAttribute("title", "Editing Computer");
-		model.addAttribute("computer", computerService.findById(id));
+		model.addAttribute("computer",computer);
 		
 		return "form";
 	}
@@ -64,7 +72,7 @@ public class MainController {
 	
 	@PostMapping("/form")
 	public String saveForm(@Valid @ModelAttribute("computer")Computer computer1,
-			BindingResult result, SessionStatus status, Model model) {
+			BindingResult result, RedirectAttributes flash, SessionStatus status, Model model) {
 		
 		if(result.hasErrors()) {
 			
@@ -74,7 +82,9 @@ public class MainController {
 		
 		
 		computerService.save(computer1);
+		flash.addFlashAttribute("success", "Computer has been successfully registered.");
 		status.isComplete();
+		
 		return "redirect:/computer/list";
 	}
 	
