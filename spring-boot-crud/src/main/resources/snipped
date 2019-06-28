@@ -618,39 +618,42 @@ logging.level.org.hibernate.SQL=debug
 // Pagenable
 
 // the Interface Dao have to extends from PagingAndSortingRepository instead of CrudRepository to get the paginator properties
-// Then in the service interface add the abstract method private Page<computer> findAll(Pageable page) from org.springframework.data.domain;
+// Then in the service interface add the abstract method public Page<computer> findAll(Pageable page) from org.springframework.data.domain;
 // in the service implementation you implement in the following way:
 
-public Page<Computer> findAll(Pageable pageable){
+	@Override
+	@Transactional(readOnly = true)
+	public Page<Computer> findAll(Pageable pageable){
 
-	return computerServiceImpl.findAll(pageable);
-	
-}
+		return computerDao.findAll(pageable);
+		
+	}
 
 // after this you have to retrieve the page which you are working with, you must use RequestParam and your list method is
 // gonna be look like this one.
 
-@GetMapping("/list")
-public String list(@RequestParam(name="page", defaultValue="0") int page, Model model){
-	
-	Pageable pageRequest = PageRequest.of(page, 4);
-	
-	Page<Computer> computers = computerService.findAll(pageRequest);
-	
-	model.addAttribute("title", "List of Available Computer");
-	model.addAttribute("computers", computers);
-	
-	return "list";
-	
-}
+	@GetMapping("/list")
+	public String showList(@RequestParam(name="page", defaultValue="0") int page, Model model) {
+		
+		Pageable pageRequest = PageRequest.of(page, 10);
+		
+		Page<Computer> computers = computerService.findAll(pageRequest);
+		
+		PageRender<Computer> pageRender = new PageRender<Computer>("/computer/list", computers);
+		model.addAttribute("title","List of available computers");
+		model.addAttribute("computers", computers);
+		model.addAttribute("page", pageRender);
+		
+		return "list";
+	}
 
 
 //step 2 is create a new package in the base package project and call it util.paginator for example.
 // then create a class that could be called PageRender and make it generic it will look like this one.
 
 
-public class PageRender<T>{
-
+public class PageRender<T> {
+	
 	private String url;
 	
 	private Page<T> page;
@@ -669,11 +672,12 @@ public class PageRender<T>{
 		this.page = page;
 		this.pages = new ArrayList<PageItem>();
 		
-		this.elementNumberPerPage = page.getSize();
-		this.totalPages = page.getTotalPages();
-		this.currentPage = page.getNumber() + 1;
+		elementNumberPerPage = 3;
+		totalPages = page.getTotalPages();
+		currentPage = page.getNumber() + 1;
 		
 		int from, upto;
+		
 		if(totalPages <= elementNumberPerPage){
 			from = 1;
 			upto = totalPages;
@@ -688,7 +692,7 @@ public class PageRender<T>{
 				from = totalPages - elementNumberPerPage + 1;
 				upto = elementNumberPerPage;
 			}else {
-				from = currentPage - numberElementPerPage/2;
+				from = currentPage - elementNumberPerPage/2;
 				upto = elementNumberPerPage;
 			} 
 		}
@@ -698,38 +702,47 @@ public class PageRender<T>{
 			pages.add(new PageItem(from + i, currentPage == from + i ));
 		}
 	}
-	
-	public String getUrl(){
+
+	public String getUrl() {
 		return url;
 	}
-	
-	public int getTotalPages(){
-		return totalPage;
+
+	public Page<T> getPage() {
+		return page;
 	}
-	
-	public int getCurrentPage(){
+
+	public int getTotalPages() {
+		return totalPages;
+	}
+
+	public int getElementNumberPerPage() {
+		return elementNumberPerPage;
+	}
+
+	public int getCurrentPage() {
 		return currentPage;
 	}
-	
-	public List<PageItem> getPages(){
+
+	public List<PageItem> getPages() {
 		return pages;
 	}
 	
-	public boolean isFirst(){
+	public boolean isFirst() {
 		return page.isFirst();
 	}
-	
-	public boolean isLast(){
+
+	public boolean isLast() {
 		return page.isLast();
 	}
-	
-	public boolean isHasNext(){
+
+	public boolean isHasNext() {
 		return page.hasNext();
 	}
-	
-	public boolean isHasPrevious(){
+
+	public boolean isHasPrevious() {
 		return page.hasPrevious();
 	}
+		
 }
 
 
@@ -737,7 +750,7 @@ step 3
 
 // create a class inside the same page called for example PageItem like this one:
 
-public class PageItem{
+public class PageItem {
 
 	private int number;
 	
@@ -774,58 +787,75 @@ model.addAttribute("page", pageRender);
 
 // now your method list should look like this.
 
-@GetMapping("/list")
-public String list(@RequestParam(name="page", defaultValue="0") int page, Model model){
-	
-	Pageable pageRequest = PageRequest.of(page, 4);
-	
-	Page<Computer> computers = computerService.findAll(pageRequest);
-	PageRender<Computer> pageRender = PageRender<>("/list", page);
-	
-	model.addAttribute("title", "List of Available Computer");
-	model.addAttribute("computers", computers);
-	model.addAttribute("page", pageRender);
-	
-	return "list";
-	
-}
+	@GetMapping("/list")
+	public String showList(@RequestParam(name="page", defaultValue="0") int page, Model model) {
+		
+		Pageable pageRequest = PageRequest.of(page, 10);
+		
+		Page<Computer> computers = computerService.findAll(pageRequest);
+		
+		PageRender<Computer> pageRender = new PageRender<Computer>("/computer/list", computers);
+		model.addAttribute("title","List of available computers");
+		model.addAttribute("computers", computers);
+		model.addAttribute("page", pageRender);
+		
+		return "list";
+	}
 
 
 // step 5
 
 // create a page named paginator-nav.html in the templates:
 
-<DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-	<nav fragment="paginator">
+
+	<nav th:fragment="paginator">
 		<ul class="pagination">
-			<li class="page-item" th:class="${page.first? 'page-item disable': 'page-item'}">
-				<span class="page-link" th:if="${page.first}">first</span>
-				<a class="page-link" th:if="${not page.first}" th:href="@{${page.url}(page=0)}">First</a>
+			<li class="page-item" th:class="${page.first? 'page-item disabled': 'page-item'}">
+			<span class="page-link" th:if="${page.first}">First</span>
+			<a class="page-link" th:if="${not page.first}" th:href="@{${page.url}(page=0)}">First</a>
 			</li>
-			<li class="page-item" th:class="${not page.hasPrevious? 'page-item disabled':'page-item'}">
-				<span class="page-link" th:if="${not page.hasPrevious}">&laquo;</span>
-				<a class="page-link" th:if="${page.hasPrevious}" th:href="@{${page.url}(page=${page.currentPage -2})}">&laquo;</a>
+
+
+			<li class="page-item"
+				th:class="${not page.hasPrevious? 'page-item disabled': 'page-item'}">
+				<span class="page-link" th:if="${not page.hasPrevious}">&laquo;</span> <a
+				class="page-link"
+				th:href="@{${page.url}(page=${page.currentPage - 2})}"
+				th:if="${page.hasPrevious}">&laquo;</a>
 			</li>
-			<li  class="page-item" th:each="item : ${page.pages}" class="${item.current? 'page-item active': 'page-item'}">
-				<span class="page-link" th:if="${item.current}" th:text="${item.number}"></span>
-				<a class="page-link" th:if="${not item.current}" th:href="@{${page.url}(page=${page.number - 1})}" th:text="${item.number}"></a>
+
+			<li class="page-item"
+				th:class="${item.current? 'page-item active': 'page-item'}"
+				th:each="item : ${page.pages}"><span class="page-link"
+				th:if="${item.current}" th:text="${item.number}"></span> <a
+				class="page-link" th:href="@{${page.url}(page=${item.number-1})}"
+				th:if="${not item.current}" th:text="${item.number}"></a></li>
+
+
+			<li class="page-item" th:class="${not page.hasNext? 'page-item disabled': 'page-item'}">
+			<span class="page-link" th:if="${not page.hasNext}">&raquo;</span>
+			<a class="page-link" th:if="${page.hasNext}" th:href="@{${page.url}(page=${page.currentPage})}">&raquo;</a>
 			</li>
-			<li class="page-item" th:class="${not page.hasNext? 'page-item disabled':'page-item'}">
-				<span class="page-link"  th:if="${not page.hasNext}">&raquo;</span>
-				<a class="page-link" th:if="${page.next}" th:href="@{${page.url}(page=${page.currentPage})}">&raquo;</a>
-				
-			</li>
-			<li  class="page-item" th:class="${not page.last? 'page-item disabled':'page-item'}">
-				<span class="page-link" th:if="${page.last}">last</span>
-				<a class="page-link" th:if="${not page.last}" th:href="@{${page.url}(page=${page.totalPage -1})}">Last</a>
+
+			<li class="page-item" th:class="${page.last? 'page-item disabled': 'page-item'}">
+			<span class="page-link" th:if="${page.last}">Last</span>
+			<a 	class="page-link" th:if="${not page.last}" th:href="@{${page.url}(page=${page.totalPages-1})}">Last</a>
 			</li>
 		</ul>
+
 	</nav>
 </body>
+</html>
 
 // step 6
 
 //under table close tag you have to put this code
 <nav th:replace="paginator-nav :: paginator"></nav>
+
+
+*****************************************************************************************************************************************
+
+
