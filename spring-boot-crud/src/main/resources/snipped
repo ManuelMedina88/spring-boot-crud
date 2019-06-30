@@ -892,5 +892,192 @@ model.addAttribute("page", pageRender);
 
 
 *****************************************************************************************************************************************
+// Adding photos
+
+// first you have to add " enctype="multipart/form-data" " in the form head 
+// after you have to modify the application.properties by adding the next line to it:
+
+spring.servlet.multipart.max-file-size = 10MB
+spring.servlet.multipart.max-request-size = 10MB
+
+// you add to the entity the field that you want to hold the file. as a String.
+
+private String photo;
+
+// after, you have to change the database's table structure to admit a photo field and a value as well.
+
+// after you have to add the field to the form in the following way.
+
+<div class="form-group row">
+	<label for="file" class="col-sm-2 col-form-label">Photo</label>
+	<div class="col-sm-6">
+		<input type="file" name="file" class="form control" />
+	</div>
+</div>
+
+// after you have to create a folder called uploads in the the static folder, after you
+// have to modify the save method in the controller and add to the parameter list the following
+
+@RequestParam("file")MultipartFile photo
+
+// and inside de method after error this.
+
+		if(!photo.isEmpty()) {
+			
+			// this is the path in real location on server or computer
+			String rootPath = "C://Users//manuel//Spring5//uploads";
+			
+			try {
+				byte[] bytes = photo.getBytes();
+				Path completePath = Paths.get(rootPath + "//" + photo.getOriginalFilename());
+				Files.write(completePath, bytes);
+				employee.setPhoto(photo.getOriginalFilename());
+				
+			}catch(IOException ex) {
+				
+				ex.printStackTrace();
+			}
+		}
+
+*********
+// add a view page to see the photos and the information of a specific object.
+
+@GetMapping(value="/look/{id}")
+public String look(@PathVariable(value="id") Long id, Model model, RedirectAttributes flash){
+
+	Employee employee = employeeService.findById(id);
+	
+	if(employee == null){
+		flash.addFlashAttribute("error", "The requested employee doesn't exit in the DDBB.");
+		return "redirect:/employee/list";
+	}
+	
+	model.addAttribute("employee", employee);
+	model.addAttribute("title", "Employeee Details:" + employee.getName());
+	
+	return "look";
+}
+
+***** creating view
+
+<td><img th:if="${#strings.length(cliente.foto) > 0}" class="img-thumbnail rounded float-left" style="max-width:25%;" 
+th:src="@{'/uploads/' + ${employee.photo}}" th:alt="${employee.photo}" /></td>
+
+// You always have to have the images in a folder out of the project because war and jar should free of images.
+//then you have to create a folder out the project and external folder, it could be called uploads
+// and after you have to configure in a configuration class. as follow:
+
+@Configuration
+public class MvcConfig implements WebMvcConfigurer {
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry){
+	
+		WebMvcConfigurer.super.addResourceHandlers(registry);
+		
+		registry.addResourceHandler("/uploads/**")
+		.addResourceLocations("file:/C:/Users/manuel/Spring5/uploads/");
+	}
+}
 
 
+********* now save is gonna be like that
+
+	@PostMapping("/form")
+	public String saveEmployee(@Valid @ModelAttribute("employee") Employee employee,
+			@RequestParam("file")MultipartFile photo,BindingResult result, SessionStatus status, Model model) {
+		
+		
+		if(result.hasErrors()) {
+			String title = (employee.getId() == null)? "Registering Employee": "Modifying Employee";
+			model.addAttribute("title", title);
+			return "form";
+		}
+		
+		if(!photo.isEmpty()) {
+			
+			
+			// remember that you have to put the path with double slash C://U
+			String rootPath = "C://Users//manuel//Spring5//uploads";
+			
+			try {
+				byte[] bytes = photo.getBytes();
+				Path completePath = Paths.get(rootPath + "//" + photo.getOriginalFilename());
+				Files.write(completePath, bytes);
+				employee.setPhoto(photo.getOriginalFilename());
+				
+			}catch(IOException ex) {
+				
+				ex.printStackTrace();
+			}
+		}
+		
+		employeeService.save(employee);
+		status.isComplete();
+		return "redirect:/employee/list";
+	}
+
+******** An Improved way to implement saveEmployee
+
+// first to make the following two steps you have create a uploads folder in base project folder.
+
+
+	@PostMapping("/form")
+	public String saveEmployee(@Valid Employee employee, BindingResult result, Model model,
+		@RequestParam("file") MultipartFile photo, RedirectAttributes flash, SessionStatus status){
+
+		if(result.hasErrors()){
+			
+			model.addAttribute("title", "Form of Customer");
+			return "form";
+		}
+		
+		if(!photo.isEmpty()){
+		
+			String uniqueFilename = UUID.randomUUID().toString() + "_" + photo.getOriginalFilename();
+			Path rootPath = Paths.get("uploads").resolve(uniqueFilename);
+			
+			Path rootAbsolutePath = rootPath.toAbsolutePath();
+			
+			try{
+			
+				Files.copy(photo.getInputStream(), rootAbsolutePath);
+				
+				employee.setPhoto(uniqueFilename);
+			}catch(IOException ex){
+				
+				ex.printStackTrace();
+			}
+		}
+		
+		employeeService.save(employee);
+		status.isComplete();
+		return "redirect:/employee/list";
+	}
+
+
+**** to create a logger
+
+private final Logger log = LoggerFactory.getLogger(getClass());
+
+// 
+log.info("rootPaht:" + rootPath);
+
+
+**** now MvcConfigure is gonna look like this.
+
+@Configuration
+public class MvcConfig implements WebMvcConfigurer {
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry){
+	
+		WebMvcConfigurer.super.addResourceHandlers(registry);
+		
+		String resourcePath = Paths.get("uploads").toAbsolutePath().toUri().toString();
+		
+		
+		registry.addResourceHandler("/uploads/**")
+		.addResourceLocations(resourcePath);
+	}
+}
