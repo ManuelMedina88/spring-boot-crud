@@ -1076,8 +1076,74 @@ public class MvcConfig implements WebMvcConfigurer {
 		
 		String resourcePath = Paths.get("uploads").toAbsolutePath().toUri().toString();
 		
-		
+		// remember that this is the path in the img tag if you have a subpath you have to specify it here
 		registry.addResourceHandler("/uploads/**")
 		.addResourceLocations(resourcePath);
+	}
+}
+
+
+**********************************************************************************
+//photo.
+//programatic way to upload a photo front the form. you are no going to need to configure a class
+// in the base package
+
+//ResponseEntity is from org.springframework.http
+//Resource is from org.springframework.core.io.Resource;
+
+	@GetMapping(value="/uploads/{filename:.+}")
+	public ResponseEntity<Resource> lookPhoto(@PathVariable String filename){
+		
+		// import org.springframework.http.ResponseEntity
+		// import org.springframework.core.io.Resource;
+		// import org.springframework.core.io.UrlResource;
+		// import java.net.MalformedURLException;
+		// import org.springframework.http.HttpHeaders;
+		
+		Path pathPhoto = Paths.get("uploads").resolve(filename).toAbsolutePath();
+		 
+		log.info("pathPhoto : " + pathPhoto);
+		
+		Resource resource = null;
+		
+		try {
+			resource = new UrlResource(pathPhoto.toUri());
+			if(resource.exists() && !resource.isReadable()) {
+				throw new RuntimeException("Error: it couldn't be posible load the image: " + pathPhoto.toString());
+			}
+			
+		}catch(MalformedURLException  ex) {
+			
+			ex.printStackTrace();
+		}
+		
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+ resource.getFilename()+"\"")
+				.body(resource);
+		
+	}
+	
+	// you have to make sure that the link in the form or view is correct.
+	
+	// remember that if you have a class that implements implements WebMvcConfigurer, you must
+	// to comment it or in a extreme case erase it.
+
+********************************************************************************
+//Delete a photo.
+
+//new delete method.
+
+@GetMapping("/delete/{id}")
+public String delete(@PathVariable(value = "id") Long id, RedirectAttributes flash){
+
+	if(id > 0){
+	
+		E
+	
+		employeeService.deleteById(id);
+		flash.addFlashAttribute("success", "Employee has been successfully eliminated ");
+		
+		Path rootPath = Paths.get("uploads").resolve(employee.getP);
+		File file = rootPaht
 	}
 }
