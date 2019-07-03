@@ -1131,19 +1131,74 @@ public class MvcConfig implements WebMvcConfigurer {
 ********************************************************************************
 //Delete a photo.
 
-//new delete method.
+//new delete method. adding a deleting photo chunk
 
-@GetMapping("/delete/{id}")
-public String delete(@PathVariable(value = "id") Long id, RedirectAttributes flash){
-
-	if(id > 0){
-	
-		E
-	
-		employeeService.deleteById(id);
-		flash.addFlashAttribute("success", "Employee has been successfully eliminated ");
+	@GetMapping("/delete/{id}")
+	public String deleteEmployee(@PathVariable("id")Long id, Model model) {
 		
-		Path rootPath = Paths.get("uploads").resolve(employee.getP);
-		File file = rootPaht
+		Employee employee = employeeService.findById(id);
+		
+		employeeService.deleteById(id);
+		
+		
+		// This part
+		Path photoPath = Paths.get("uploads").resolve(employee.getPhoto()).toAbsolutePath();
+		File photo = photoPath.toFile();
+		
+		if(photo.exists()&& photo.canRead())
+			photo.delete(); 
+		
+		return "redirect:/employee/list";
+		
 	}
-}
+	
+
+**** and you have to add too to saveEmployee
+
+	@PostMapping("/form")
+	public String saveEmployee(@Valid Employee employee, BindingResult result, Model model,
+		@RequestParam("file") MultipartFile photo, RedirectAttributes flash, SessionStatus status){
+
+		if(result.hasErrors()){
+			
+			model.addAttribute("title", "Form of Customer");
+			return "form";
+		}
+		
+		if(!photo.isEmpty()){
+		
+			if(employee.getId() != null
+					&& employee.getId() > 0
+					&& employee.getPhoto() != null 
+					&& employee.getPhoto().length()> 0) {
+				
+				Path photoPath = Paths.get("uploads").resolve(employee.getPhoto()).toAbsolutePath();
+				File photo1 = photoPath.toFile();
+				
+				if(photo1.exists()&& photo1.canRead())
+					photo1.delete();
+			}
+			
+			
+			String uniqueFilename = "employee_" + employee.getId()+"_" + UUID.randomUUID().toString() + "_" + photo.getOriginalFilename();
+			Path rootPath = Paths.get("uploads").resolve(uniqueFilename);
+			
+			Path rootAbsolutePath = rootPath.toAbsolutePath();
+			
+			try{
+			
+				Files.copy(photo.getInputStream(), rootAbsolutePath);
+				
+				employee.setPhoto(uniqueFilename);
+			}catch(IOException ex){
+				
+				ex.printStackTrace();
+			}
+		}
+		
+		employeeService.save(employee);
+		status.isComplete();
+		return "redirect:/employee/list";
+	}
+	
+	*****************************************************
