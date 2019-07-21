@@ -1201,4 +1201,38 @@ public class MvcConfig implements WebMvcConfigurer {
 		return "redirect:/employee/list";
 	}
 	
-	*****************************************************
+******************************************************************************************************
+    @ManyToOne
+    @OneToMany
+	
+    @OneToMany
+	private List<Factura> facturas;
+
+    public Clientes(){
+        facturas = new ArrayList<Factura>();
+    }
+
+    private void setFacturas(List<Factura> facturas){
+
+        this.facturas = facturas;
+
+    }
+
+    private List<Factura> getFactura(){
+
+        return facturas;
+    }
+
+    private void addFactura(Factura factura){
+
+        getFactura().add(factura);
+    }
+    
+    @ManyToOne(mappedBy="cliente",fetch=FetchType.LAZY, Cascade = CascadeType.ALL)
+    private List<Factura> facturas;
+
+   @OneToMany(fetch=FetchType.LAZY)
+
+   @PrePersist
+   
+   @JoinColumn(name="factura_id")
