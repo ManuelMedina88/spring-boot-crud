@@ -1236,3 +1236,5 @@ public class MvcConfig implements WebMvcConfigurer {
    @PrePersist
    
    @JoinColumn(name="factura_id")
+   
+   orphanRemoval = true;
